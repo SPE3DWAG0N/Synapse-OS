@@ -6,45 +6,61 @@
     <a href="https://reactjs.org/"><img src="https://img.shields.io/badge/Frontend-React%2019%20%7C%20Next.js-blue?style=for-the-badge&logo=react" alt="React"></a>
     <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/Backend-FastAPI-009688?style=for-the-badge&logo=fastapi" alt="FastAPI"></a>
     <a href="https://www.postgresql.org/"><img src="https://img.shields.io/badge/Database-PostgreSQL%20%7C%20pgvector-336791?style=for-the-badge&logo=postgresql" alt="PostgreSQL"></a>
-    <a href="https://docker.com/"><img src="https://img.shields.io/badge/DevOps-Docker-2496ED?style=for-the-badge&logo=docker" alt="Docker"></a>
+    <a href="https://redis.io/"><img src="https://img.shields.io/badge/Message_Broker-Redis-DC382D?style=for-the-badge&logo=redis" alt="Redis"></a>
+    <a href="https://docker.com/"><img src="https://img.shields.io/badge/DevOps-Docker%20Compose-2496ED?style=for-the-badge&logo=docker" alt="Docker"></a>
   </p>
 </div>
 
 ---
 
-## 📖 Overview
+## 📖 Project Overview
 
-**Synapse OS** is a powerful, Notion-inspired workspace built from the ground up to integrate deeply with Artificial Intelligence. Instead of just writing notes, Synapse OS actively ingests your documents, links, and text into a high-dimensional vector database. 
+**Synapse OS** is a highly scalable, Notion-inspired workspace designed to integrate deeply with Artificial Intelligence. Rather than acting as a static note-taking app, Synapse functions as a dynamic knowledge engine. 
 
-Using advanced **Retrieval-Augmented Generation (RAG)**, you can chat with your workspace. Ask questions, extract summaries, and let the AI instantly retrieve exact context from across all your saved documents.
+It actively ingests user documents into a high-dimensional **pgvector database**, utilizing a decoupled **Celery/Redis background worker architecture** to ensure the main API thread remains unblocked during heavy LangChain vectorization tasks. Users can then query their entire workspace using advanced **Retrieval-Augmented Generation (RAG)**.
 
-## ✨ Key Features
+This project was built to demonstrate proficiency in **System Design, Asynchronous Processing, and Modern Full-Stack Engineering**.
 
-- 💬 **Intelligent Chat (RAG)**: Chat directly with your knowledge base using Google GenAI models and LangChain.
-- 📚 **Background Ingestion**: Upload PDFs, sync calendars, or paste notes. Synapse uses **Celery & Redis** to process, chunk, and vectorize your documents asynchronously without blocking the UI.
-- 🔍 **Semantic Search**: Powered by **pgvector**, search your workspace by meaning, not just keywords.
-- 🎨 **Premium Aesthetic**: A beautifully crafted, responsive frontend using Next.js and Vanilla CSS Modules.
-- 🐳 **Fully Dockerized**: Spin up the entire architecture (Frontend, Backend, Redis, Postgres, and Background Workers) with a single command.
+## 🏗️ System Architecture
+
+```mermaid
+graph LR
+    Client([Next.js Frontend]) -->|REST API| API(FastAPI Backend)
+    API --> DB[(PostgreSQL + pgvector)]
+    API -->|Offload Ingestion| Broker(Redis Message Broker)
+    Broker --> Worker(Celery Background Worker)
+    Worker -->|Generate Embeddings| LLM(Google GenAI / LangChain)
+    Worker -->|Store Vectors| DB
+```
+
+## ✨ Technical Highlights (For Engineering Teams)
+
+- **Decoupled Background Processing**: Document ingestion (chunking, embedding, database storage) is offloaded to a **Celery** worker queue backed by **Redis**. This prevents the FastAPI event loop from blocking during computationally expensive LLM network calls.
+- **Advanced Vector Search**: Utilizes **pgvector** natively within PostgreSQL (via SQLAlchemy) for high-performance semantic similarity search (Cosine Distance), avoiding the need for a separate, isolated vector database.
+- **Isolated Transactional Testing**: The **Pytest** suite implements custom fixtures that run every test within a nested SQL transaction. Transactions are automatically rolled back upon test completion, ensuring a deterministic, non-destructive testing environment.
+- **Robust Database Management**: Schema version control is strictly managed using **Alembic** migrations, adhering to production-ready database management standards.
+- **Containerized Orchestration**: The entire distributed system (Frontend, Backend API, Celery Worker, Redis, and Postgres) is fully containerized and orchestrated via **Docker Compose** for a seamless, 1-click developer experience.
 
 ## 🛠️ Technology Stack
 
-### Frontend
+### Frontend Architecture
 - **Framework**: Next.js (React 19)
-- **Styling**: Vanilla CSS Modules (Zero dependency styling)
-- **Markdown**: `react-markdown` for rendering rich AI responses
+- **Styling**: Vanilla CSS Modules (Demonstrating strong fundamental CSS architecture without utility-class bloat)
+- **Data Rendering**: `react-markdown` for secure parsing of rich AI responses
 
-### Backend
+### Backend Architecture
 - **Framework**: FastAPI (Python 3.12)
-- **Database**: PostgreSQL with the `pgvector` extension
-- **ORM & Migrations**: SQLAlchemy & Alembic
+- **Database**: PostgreSQL + `pgvector`
+- **ORM & Migrations**: SQLAlchemy + Alembic
 - **Task Queue**: Celery + Redis
-- **AI / LLMs**: LangChain + Google GenAI
+- **AI & ML**: LangChain + Google GenAI Models
+- **Testing**: Pytest + `httpx`
 
 ---
 
 ## 🚀 Quick Start (Docker)
 
-The easiest way to run Synapse OS is using Docker. Ensure you have [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed on your machine.
+To test the application locally, ensure you have [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed.
 
 1. **Clone the repository:**
    ```bash
@@ -53,9 +69,12 @@ The easiest way to run Synapse OS is using Docker. Ensure you have [Docker Deskt
    ```
 
 2. **Configure Environment Variables:**
-   Create a `.env` file in the `backend/` directory and add your AI API keys (e.g., `GOOGLE_API_KEY`).
+   Create a `.env` file in the `backend/` directory and add your required keys:
+   ```env
+   GOOGLE_API_KEY=your_gemini_key_here
+   ```
 
-3. **Spin up the stack:**
+3. **Spin up the distributed system:**
    ```bash
    docker-compose up --build
    ```
@@ -68,32 +87,15 @@ The easiest way to run Synapse OS is using Docker. Ensure you have [Docker Deskt
 
 ## 🧪 Testing
 
-Synapse OS includes a robust testing suite for the backend that runs in isolated SQL transactions to prevent dev-data corruption.
+The backend includes a rigorous integration testing suite.
 
-To run the test suite locally:
 ```bash
 cd backend
 python -m venv venv
-source venv/Scripts/activate  # (or venv/bin/activate on Mac/Linux)
+source venv/Scripts/activate  # (Windows)
 pip install -r requirements.txt
 pytest tests/
 ```
-
-## 🗄️ Database Migrations
-
-Database schema changes are managed by **Alembic**. If you update the models in `backend/app/models.py`, generate a new migration:
-
-```bash
-cd backend
-alembic revision --autogenerate -m "Description of change"
-alembic upgrade head
-```
-
----
-
-## 🤝 Contributing
-
-Contributions are always welcome! Feel free to open a Pull Request or create an Issue if you find a bug or want to suggest a new feature.
 
 ## 📜 License
 
