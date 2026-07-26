@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  synapse-db:
+    image: ankane/pgvector:latest
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: synapse_user
+      POSTGRES_PASSWORD: synapse_password
+      POSTGRES_DB: synapse_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  synapse-redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      POSTGRES_USER: synapse_user
+      POSTGRES_PASSWORD: synapse_password
+      POSTGRES_DB: synapse_db
+      POSTGRES_HOST: synapse-db
+      POSTGRES_PORT: 5432
+      REDIS_URL: redis://synapse-redis:6379/0
+    depends_on:
+      - synapse-db
+      - synapse-redis
+
+  backend-worker:
+    build:
+      context: ./backend
+    command: ["celery", "-A", "app.celery_app", "worker", "--loglevel=info"]
+    environment:
+      POSTGRES_USER: synapse_user
+      POSTGRES_PASSWORD: synapse_password
+      POSTGRES_DB: synapse_db
+      POSTGRES_HOST: synapse-db
+      POSTGRES_PORT: 5432
+      REDIS_URL: redis://synapse-redis:6379/0
+    depends_on:
+      - synapse-db
+      - synapse-redis
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
