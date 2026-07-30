@@ -134,21 +134,49 @@ export default function Chat() {
 
       if (!res.ok) throw new Error("Failed to fetch response");
       
-      const data = await res.json();
+      setIsLoading(false); // Stop main loading, start streaming
+
+      const reader = res.body?.getReader();
+      const decoder = new TextDecoder("utf-8");
       
-      // If we just created a new conversation implicitly, update state
-      if (!activeConvId && data.conversation_id) {
-        setActiveConvId(data.conversation_id);
-        fetchConversations();
+      if (!reader) throw new Error("No reader");
+
+      let currentConvId = activeConvId;
+      
+      const aiMsgId = (Date.now() + 1).toString();
+      setMessages((prev) => [...prev, { id: aiMsgId, role: "ai", content: "" }]);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n\n");
+        
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const dataStr = line.replace("data: ", "");
+            if (!dataStr) continue;
+            
+            try {
+              const data = JSON.parse(dataStr);
+              if (data.status === "start" && data.conversation_id && !currentConvId) {
+                currentConvId = data.conversation_id;
+                setActiveConvId(data.conversation_id);
+                fetchConversations();
+              } else if (data.text) {
+                setMessages((prev) => 
+                  prev.map(msg => 
+                    msg.id === aiMsgId ? { ...msg, content: msg.content + data.text } : msg
+                  )
+                );
+              }
+            } catch (e) {
+              console.error("Error parsing JSON:", e);
+            }
+          }
+        }
       }
-      
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "ai",
-        content: data.response
-      };
-      
-      setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
       console.error(error);
       const errorMessage: Message = {
@@ -157,7 +185,6 @@ export default function Chat() {
         content: "Sorry, I encountered an error connecting to the backend. Please ensure the FastAPI server is running."
       };
       setMessages((prev) => [...prev, errorMessage]);
-    } finally {
       setIsLoading(false);
     }
   };
@@ -266,22 +293,44 @@ export default function Chat() {
         </div>
         
         <div className={styles.messagesArea}>
-          {messages.map((msg) => (
-            <div 
-              key={msg.id} 
-              className={`${styles.messageWrapper} ${msg.role === "user" ? styles.messageUser : styles.messageAi}`}
-            >
-              <div 
-                className={`${styles.messageBubble} ${msg.role === "user" ? styles.messageBubbleUser : styles.messageBubbleAi}`}
-              >
-                {msg.role === "user" ? (
-                  msg.content
-                ) : (
-                  <ReactMarkdown>{msg.content}</ReactMarkdown>
-                )}
+          {messages.length === 1 && !activeConvId ? (
+            <div className={styles.emptyState}>
+              <div className={styles.emptyStateIcon}>🧠</div>
+              <h2>Welcome to Synapse OS</h2>
+              <p>Your AI-powered second brain. What would you like to explore today?</p>
+              <div className={styles.suggestionChips}>
+                <button onClick={() => setInput("Summarize my recent notes")}>Summarize my notes</button>
+                <button onClick={() => setInput("What are my action items?")}>Find action items</button>
+                <button onClick={() => setInput("Explain the system architecture")}>Explain architecture</button>
               </div>
             </div>
-          ))}
+          ) : (
+            messages.map((msg) => (
+              <div 
+                key={msg.id} 
+                className={`${styles.messageWrapper} ${msg.role === "user" ? styles.messageUser : styles.messageAi}`}
+              >
+                <div 
+                  className={`${styles.messageBubble} ${msg.role === "user" ? styles.messageBubbleUser : styles.messageBubbleAi}`}
+                >
+                  {msg.role === "user" ? (
+                    msg.content
+                  ) : (
+                    <div className={styles.aiMessageContainer}>
+                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                      <button 
+                        className={styles.copyButton}
+                        onClick={() => navigator.clipboard.writeText(msg.content)}
+                        title="Copy message"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
           
           {isLoading && (
             <div className={`${styles.messageWrapper} ${styles.messageAi}`}>
@@ -309,14 +358,24 @@ export default function Chat() {
             </div>
           )}
           <form onSubmit={handleSubmit} className={styles.inputForm}>
-            <input
-              type="text"
+            <textarea
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => {
+                setInput(e.target.value);
+                e.target.style.height = 'inherit';
+                e.target.style.height = `${Math.min(e.target.scrollHeight, 200)}px`;
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }
+              }}
               placeholder="Ask your second brain..."
               className={styles.inputField}
               disabled={isLoading}
               autoFocus
+              rows={1}
             />
             <button 
               type="submit" 

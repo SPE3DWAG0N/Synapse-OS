@@ -87,12 +87,27 @@ def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
         db.add(user_msg)
         db.commit()
         
-        response_text = generate_rag_response(db, request.query, conv_id)
+        # We will use StreamingResponse
+        from fastapi.responses import StreamingResponse
+        import json
+        from app.services.rag import generate_rag_response_stream
         
-        ai_msg = Message(conversation_id=conv_id, role="ai", content=response_text)
-        db.add(ai_msg)
-        db.commit()
-        
-        return {"response": response_text, "conversation_id": conv_id}
+        def generate():
+            full_response = ""
+            # Send initial event with conversation_id for new chats
+            yield f"data: {json.dumps({'conversation_id': conv_id, 'status': 'start'})}\n\n"
+            
+            for chunk in generate_rag_response_stream(db, request.query, conv_id):
+                full_response += chunk
+                yield f"data: {json.dumps({'text': chunk})}\n\n"
+                
+            yield f"data: {json.dumps({'status': 'end'})}\n\n"
+            
+            # Save to DB after streaming is done
+            ai_msg = Message(conversation_id=conv_id, role="ai", content=full_response)
+            db.add(ai_msg)
+            db.commit()
+
+        return StreamingResponse(generate(), media_type="text/event-stream")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

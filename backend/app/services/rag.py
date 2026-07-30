@@ -21,9 +21,8 @@ def retrieve_relevant_chunks(db: Session, query: str, top_k: int = 5) -> List[Do
     
     return chunks
 
-def generate_rag_response(db: Session, query: str, conversation_id: int) -> str:
+def generate_rag_response_stream(db: Session, query: str, conversation_id: int):
     chunks = retrieve_relevant_chunks(db, query)
-    
     context = "\n\n".join([chunk.content for chunk in chunks])
     
     from app.models import Message
@@ -43,11 +42,18 @@ def generate_rag_response(db: Session, query: str, conversation_id: int) -> str:
     prompt = ChatPromptTemplate.from_messages(messages_list)
     
     llm = ChatGoogleGenerativeAI(
-        model="gemini-flash-latest", 
+        model="gemini-1.5-flash", 
         temperature=0.2, 
         google_api_key=os.getenv("GEMINI_API_KEY")
     )
     chain = prompt | llm | StrOutputParser()
     
-    response = chain.invoke({"context": context, "query": query})
+    for chunk in chain.stream({"context": context, "query": query}):
+        yield chunk
+
+def generate_rag_response(db: Session, query: str, conversation_id: int) -> str:
+    # Retained for backwards compatibility if needed
+    response = ""
+    for chunk in generate_rag_response_stream(db, query, conversation_id):
+        response += chunk
     return response

@@ -1,0 +1,93 @@
+# Render Blueprint for Synapse OS
+# This file describes the infrastructure needed to deploy Synapse OS on Render.com
+
+services:
+  # 1. PostgreSQL Database (with pgvector)
+  # Render doesn't natively support pgvector on their managed Postgres in the free tier
+  # without a custom Docker container, but we will deploy a Dockerized Postgres service.
+  # Note: Render free tier spins down after inactivity.
+  - type: pserv
+    name: synapse-db
+    env: docker
+    plan: free
+    dockerCommand: "postgres"
+    envVars:
+      - key: POSTGRES_USER
+        value: synapse_user
+      - key: POSTGRES_PASSWORD
+        generateValue: true
+      - key: POSTGRES_DB
+        value: synapse
+    disk:
+      name: synapse-data
+      mountPath: /var/lib/postgresql/data
+      sizeGB: 1
+
+  # 2. Redis Message Broker
+  - type: pserv
+    name: synapse-redis
+    env: docker
+    plan: free
+    dockerCommand: "redis-server"
+    envVars:
+      - key: REDIS_URL
+        value: redis://synapse-redis:6379
+
+  # 3. Backend API (FastAPI)
+  - type: web
+    name: synapse-api
+    env: python
+    plan: free
+    buildCommand: "cd backend && pip install -r requirements.txt"
+    startCommand: "cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: DATABASE_URL
+        fromService:
+          type: pserv
+          name: synapse-db
+          envVarKey: POSTGRES_URL
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: pserv
+          name: synapse-redis
+          envVarKey: REDIS_URL
+      - key: GEMINI_API_KEY
+        sync: false # Must be set in Render dashboard
+
+  # 4. Celery Background Worker
+  - type: worker
+    name: synapse-worker
+    env: python
+    plan: free
+    buildCommand: "cd backend && pip install -r requirements.txt"
+    startCommand: "cd backend && celery -A app.celery_app worker --loglevel=info"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: DATABASE_URL
+        fromService:
+          type: pserv
+          name: synapse-db
+          envVarKey: POSTGRES_URL
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: pserv
+          name: synapse-redis
+          envVarKey: REDIS_URL
+      - key: GEMINI_API_KEY
+        sync: false
+
+  # 5. Frontend UI (Next.js)
+  - type: web
+    name: synapse-web
+    env: docker
+    plan: free
+    dockerfilePath: ./frontend/Dockerfile
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: synapse-api
+          envVarKey: RENDER_EXTERNAL_URL
