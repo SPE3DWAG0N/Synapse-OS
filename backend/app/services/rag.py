@@ -10,7 +10,7 @@ from langchain_core.output_parsers import StrOutputParser
 
 def retrieve_relevant_chunks(db: Session, query: str, top_k: int = 5) -> List[DocumentChunk]:
     embeddings_model = GoogleGenerativeAIEmbeddings(
-        model="models/embedding-001", 
+        model="models/gemini-embedding-2", 
         google_api_key=os.getenv("GEMINI_API_KEY")
     )
     query_embedding = embeddings_model.embed_query(query)
@@ -42,7 +42,7 @@ def generate_rag_response_stream(db: Session, query: str, conversation_id: int):
     prompt = ChatPromptTemplate.from_messages(messages_list)
     
     llm = ChatGoogleGenerativeAI(
-        model="gemini-1.5-flash-latest", 
+        model="gemini-2.5-flash", 
         temperature=0.2, 
         google_api_key=os.getenv("GEMINI_API_KEY")
     )
