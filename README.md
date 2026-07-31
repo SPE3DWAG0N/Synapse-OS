@@ -1,27 +1,45 @@
 <div align="center">
+  <img src="docs/assets/banner.png" alt="Synapse OS Banner" width="100%" style="border-radius: 12px; margin-bottom: 20px;" />
+
   <h1>🧠 Synapse OS</h1>
-  <p><strong>A Next-Generation, AI-Powered Workspace & Knowledge Base</strong></p>
+  <p><strong>Your AI-Powered Second Brain & Next-Gen Knowledge Engine</strong></p>
   
   <p>
-    <a href="https://reactjs.org/"><img src="https://img.shields.io/badge/Frontend-React%2019%20%7C%20Next.js-blue?style=for-the-badge&logo=react" alt="React"></a>
+    <a href="https://react.dev/"><img src="https://img.shields.io/badge/Frontend-React%2019%20%7C%20Next.js-blue?style=for-the-badge&logo=react" alt="React"></a>
     <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/Backend-FastAPI-009688?style=for-the-badge&logo=fastapi" alt="FastAPI"></a>
     <a href="https://www.postgresql.org/"><img src="https://img.shields.io/badge/Database-PostgreSQL%20%7C%20pgvector-336791?style=for-the-badge&logo=postgresql" alt="PostgreSQL"></a>
     <a href="https://redis.io/"><img src="https://img.shields.io/badge/Message_Broker-Redis-DC382D?style=for-the-badge&logo=redis" alt="Redis"></a>
     <a href="https://docker.com/"><img src="https://img.shields.io/badge/DevOps-Docker%20Compose-2496ED?style=for-the-badge&logo=docker" alt="Docker"></a>
   </p>
+  
+  <p>
+    <em>A highly scalable, beautifully designed workspace that integrates deeply with Artificial Intelligence to transform static notes into dynamic knowledge.</em>
+  </p>
 </div>
 
 ---
 
-## 📖 Project Overview
+## 🌟 Why Synapse OS?
 
-**Synapse OS** is a highly scalable, Notion-inspired workspace designed to integrate deeply with Artificial Intelligence. Rather than acting as a static note-taking app, Synapse functions as a dynamic knowledge engine. 
+Rather than acting as a simple, static note-taking app, Synapse functions as a dynamic knowledge engine. It actively ingests user documents into a high-dimensional **pgvector database**, utilizing a decoupled **Celery/Redis background worker architecture**. This ensures your interface remains lightning-fast, while heavy AI workloads run silently in the background.
 
-It actively ingests user documents into a high-dimensional **pgvector database**, utilizing a decoupled **Celery/Redis background worker architecture** to ensure the main API thread remains unblocked during heavy LangChain vectorization tasks. Users can then query their entire workspace using advanced **Retrieval-Augmented Generation (RAG)**.
+With Synapse OS, you don't just store information—you interact with it.
 
-This project was built to demonstrate proficiency in **System Design, Asynchronous Processing, and Modern Full-Stack Engineering**.
+---
+
+## ✨ Core Features
+
+- ⚡ **Lightning Fast Interface**: Built on Next.js with a warm, minimalist glassmorphic design system. No bloat, pure speed.
+- 🧠 **Retrieval-Augmented Generation (RAG)**: Chat directly with your documents. Find answers buried deep in your notes instantly.
+- 🧵 **Decoupled AI Processing**: Document chunking and embedding generation are offloaded to background workers. Your UI never freezes.
+- 🔌 **Seamless Integrations**: Sync your GitHub repos, YouTube transcripts, Outlook emails, and local PDFs directly into your AI brain.
+- 🐳 **One-Click Deploy**: The entire distributed architecture is containerized and orchestrated via Docker Compose.
+
+---
 
 ## 🏗️ System Architecture
+
+Synapse OS was built to demonstrate proficiency in System Design, Asynchronous Processing, and Modern Full-Stack Engineering.
 
 ```mermaid
 graph LR
@@ -33,34 +51,18 @@ graph LR
     Worker -->|Store Vectors| DB
 ```
 
-## ✨ Technical Highlights (For Engineering Teams)
-
-- **Decoupled Background Processing**: Document ingestion (chunking, embedding, database storage) is offloaded to a **Celery** worker queue backed by **Redis**. This prevents the FastAPI event loop from blocking during computationally expensive LLM network calls.
-- **Advanced Vector Search**: Utilizes **pgvector** natively within PostgreSQL (via SQLAlchemy) for high-performance semantic similarity search (Cosine Distance), avoiding the need for a separate, isolated vector database.
-- **Isolated Transactional Testing**: The **Pytest** suite implements custom fixtures that run every test within a nested SQL transaction. Transactions are automatically rolled back upon test completion, ensuring a deterministic, non-destructive testing environment.
-- **Robust Database Management**: Schema version control is strictly managed using **Alembic** migrations, adhering to production-ready database management standards.
-- **Containerized Orchestration**: The entire distributed system (Frontend, Backend API, Celery Worker, Redis, and Postgres) is fully containerized and orchestrated via **Docker Compose** for a seamless, 1-click developer experience.
-
-## 🛠️ Technology Stack
-
-### Frontend Architecture
-- **Framework**: Next.js (React 19)
-- **Styling**: Vanilla CSS Modules (Demonstrating strong fundamental CSS architecture without utility-class bloat)
-- **Data Rendering**: `react-markdown` for secure parsing of rich AI responses
-
-### Backend Architecture
-- **Framework**: FastAPI (Python 3.12)
-- **Database**: PostgreSQL + `pgvector`
-- **ORM & Migrations**: SQLAlchemy + Alembic
-- **Task Queue**: Celery + Redis
-- **AI & ML**: LangChain + Google GenAI Models
-- **Testing**: Pytest + `httpx`
+### Technical Highlights (For Engineers)
+- **Advanced Vector Search**: Natively uses **pgvector** within PostgreSQL for high-performance semantic similarity search (Cosine Distance), unifying relational and vector data.
+- **Isolated Transactional Testing**: Pytest suite uses nested SQL transactions that rollback on teardown, guaranteeing a deterministic test environment.
+- **Strict Schema Management**: Managed by **Alembic**, adhering to production-grade DB standards.
 
 ---
 
 ## 🚀 Quick Start (Docker)
 
-To test the application locally, ensure you have [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed.
+Ready to spin up your own second brain? It takes less than 5 minutes.
+
+> **Prerequisite:** Ensure you have [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
 
 1. **Clone the repository:**
    ```bash
@@ -69,7 +71,7 @@ To test the application locally, ensure you have [Docker Desktop](https://www.do
    ```
 
 2. **Configure Environment Variables:**
-   Create a `.env` file in the `backend/` directory and add your required keys:
+   Create a `.env` file in the `backend/` directory and add your LLM API key:
    ```env
    GOOGLE_API_KEY=your_gemini_key_here
    ```
@@ -85,18 +87,25 @@ To test the application locally, ensure you have [Docker Desktop](https://www.do
 
 ---
 
-## 🧪 Testing
+## 🧪 Development & Testing
 
-The backend includes a rigorous integration testing suite.
+Want to contribute or run tests? We have a rigorous integration testing suite.
 
 ```bash
 cd backend
 python -m venv venv
-source venv/Scripts/activate  # (Windows)
+# Windows
+.\venv\Scripts\activate  
+# macOS/Linux
+source venv/bin/activate
+
 pip install -r requirements.txt
 pytest tests/
 ```
 
-## 📜 License
+---
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+<div align="center">
+  <p>Built with ❤️ by passionate engineers.</p>
+  <p>Released under the <a href="LICENSE">MIT License</a>.</p>
+</div>
