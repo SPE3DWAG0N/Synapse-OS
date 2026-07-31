@@ -26,6 +26,7 @@ export default function Chat() {
   const [showIntegrations, setShowIntegrations] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<string[]>([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Load conversations on mount
@@ -47,7 +48,7 @@ export default function Chat() {
   }, [activeConvId]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [messages, isLoading]);
 
   const fetchConversations = async () => {
@@ -244,7 +245,7 @@ export default function Chat() {
   return (
     <div className={styles.layout}>
       {/* Sidebar for Conversations */}
-      <div className={styles.sidebar}>
+      <div className={`${styles.sidebar} ${isSidebarOpen ? styles.sidebarOpen : styles.sidebarClosed}`}>
         <div className={styles.sidebarHeader}>
           <div className={styles.logo}>Synapse OS</div>
           <button className={styles.newChatButton} onClick={startNewChat} title="New Chat">
@@ -281,6 +282,7 @@ export default function Chat() {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
+        <div className="ambient-bg"></div>
         {isDragging && (
           <div className={styles.dragOverlay}>
             <div className={styles.dragMessage}>Drop files here to add to context</div>
@@ -288,9 +290,16 @@ export default function Chat() {
         )}
         
         <div className={styles.header}>
-          <h2 className={styles.title}>
-            {activeConvId ? conversations.find(c => c.id === activeConvId)?.title : "New Chat"}
-          </h2>
+          <div className={styles.headerLeft}>
+            <button className={styles.menuButton} onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 12h18M3 6h18M3 18h18"></path>
+              </svg>
+            </button>
+            <h2 className={styles.title}>
+              {activeConvId ? conversations.find(c => c.id === activeConvId)?.title : "New Chat"}
+            </h2>
+          </div>
           <button 
             className={styles.settingsButton}
             onClick={() => setShowIntegrations(!showIntegrations)}

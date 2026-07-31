@@ -1,32 +1,83 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
-
 :root {
-  --background: #fdfdfd;
-  --foreground: #09090b;
-  --primary: #6d28d9;
-  --primary-hover: #5b21b6;
-  --border: rgba(0, 0, 0, 0.08);
-  --sidebar-bg: rgba(250, 250, 250, 0.7);
-  --chat-bg: transparent;
-  --user-msg-bg: rgba(244, 244, 245, 0.8);
-  --ai-msg-bg: rgba(255, 255, 255, 0.8);
-  --text-muted: #71717a;
+  /* Warm Minimalist AI Design System */
   
-  --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  /* Backgrounds */
+  --background: #fbf9f8;
+  --on-background: #1b1c1c;
+  
+  /* Surfaces */
+  --surface: #fbf9f8;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f6f3f2;
+  --surface-container: #f0eded;
+  --surface-container-high: #eae7e7;
+  --surface-container-highest: #e4e2e1;
+  
+  --on-surface: #1b1c1c;
+  --on-surface-variant: #53433e;
+  
+  /* Primary */
+  --primary: #e9967a;
+  --on-primary: #ffffff;
+  --primary-container: #ffdbd0;
+  --on-primary-container: #390c00;
+  
+  /* Neutral / Borders */
+  --outline: #86736d;
+  --outline-variant: #d9c2bb;
+  --error: #ba1a1a;
+  
+  /* Glassmorphism Variables */
+  --glass-surface: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  
+  /* Radii */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* Typography */
+  --font-sans: 'Geist', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  
+  /* Dimensions */
+  --sidebar-width: 280px;
+  --chat-max: 800px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #09090b;
-    --foreground: #fafafa;
-    --primary: #8b5cf6;
-    --primary-hover: #a78bfa;
-    --border: rgba(255, 255, 255, 0.1);
-    --sidebar-bg: rgba(24, 24, 27, 0.6);
-    --chat-bg: transparent;
-    --user-msg-bg: rgba(39, 39, 42, 0.6);
-    --ai-msg-bg: rgba(24, 24, 27, 0.4);
-    --text-muted: #a1a1aa;
+    /* Backgrounds */
+    --background: #1e1b1a;
+    --on-background: #e4e2e1;
+    
+    /* Surfaces */
+    --surface: #1e1b1a;
+    --surface-container-lowest: #12100f;
+    --surface-container-low: #1e1b1a;
+    --surface-container: #282524;
+    --surface-container-high: #33302f;
+    --surface-container-highest: #3e3b3a;
+    
+    --on-surface: #e4e2e1;
+    --on-surface-variant: #d9c2bb;
+    
+    /* Primary */
+    --primary: #ffb59c;
+    --on-primary: #390c00;
+    --primary-container: #723520;
+    --on-primary-container: #ffdbd0;
+    
+    /* Neutral / Borders */
+    --outline: #a08c87;
+    --outline-variant: #53433e;
+    --error: #ffb4ab;
+    
+    /* Glassmorphism Variables */
+    --glass-surface: rgba(30, 27, 26, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.1);
   }
 }
 
@@ -36,49 +87,49 @@
   padding: 0;
 }
 
-body {
+html, body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
   font-family: var(--font-sans);
   background-color: var(--background);
-  color: var(--foreground);
-  line-height: 1.6;
+  color: var(--on-background);
   -webkit-font-smoothing: antialiased;
-  
-  /* Futuristic mesh gradient background */
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(56, 189, 248, 0.15) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.15) 0px, transparent 50%),
-    radial-gradient(at 0% 100%, rgba(16, 185, 129, 0.15) 0px, transparent 50%);
-  background-attachment: fixed;
-}
-
-a {
-  color: var(--primary);
-  text-decoration: none;
-  transition: opacity 0.2s;
-}
-
-a:hover {
-  opacity: 0.8;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 button {
-  cursor: pointer;
   font-family: inherit;
+  cursor: pointer;
 }
 
-/* Custom sleek scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+a {
+  color: inherit;
+  text-decoration: none;
 }
-::-webkit-scrollbar-track {
-  background: transparent;
+
+/* Ambient Shader Animation Background */
+.ambient-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  background: radial-gradient(circle at 15% 50%, rgba(233, 150, 122, 0.08), transparent 50%),
+              radial-gradient(circle at 85% 30%, rgba(233, 150, 122, 0.05), transparent 50%);
+  animation: ambientShift 20s ease-in-out infinite alternate;
+  pointer-events: none;
 }
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
+
+@keyframes ambientShift {
+  0% {
+    transform: scale(1) translate(0, 0);
+  }
+  50% {
+    transform: scale(1.05) translate(2%, 3%);
+  }
+  100% {
+    transform: scale(1) translate(-2%, -3%);
+  }
 }

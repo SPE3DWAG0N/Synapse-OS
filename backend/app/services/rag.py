@@ -30,7 +30,7 @@ def generate_rag_response_stream(db: Session, query: str, conversation_id: int):
     history.reverse()
     
     messages_list = [
-        ("system", f"You are Synapse OS, an expert AI assistant. Answer the user's question based ONLY on the following context and conversation history. If you don't know the answer, say that you don't know.\n\nContext:\n{context}")
+        ("system", f"You are Synapse OS, an expert AI assistant. Use the provided context to augment your answers. If the context doesn't contain the answer to the user's question, you may use your general knowledge to help them.\n\nContext:\n{context}")
     ]
     
     for msg in history:
