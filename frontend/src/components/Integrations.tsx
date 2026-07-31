@@ -111,23 +111,40 @@ export default function Integrations() {
         )}
 
         {activeTab === 'email' && (
-          <form onSubmit={(e) => { e.preventDefault(); handleSync('email', { imap_server: imapServer, email_address: emailAddress, app_password: appPassword }); }} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>IMAP Server</label>
-              <input type="text" className={styles.input} value={imapServer} onChange={(e) => setImapServer(e.target.value)} disabled={isSyncing} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ padding: '16px', backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '1.1rem', color: '#fff' }}>Option 1: Local Outlook Agent (Recommended for Windows)</h3>
+              <p style={{ margin: '0 0 16px 0', fontSize: '0.9rem', color: '#ccc', lineHeight: '1.4' }}>
+                If you use the Microsoft Outlook desktop app on Windows, you can sync your emails securely without any passwords or OAuth setup using our local agent script.
+              </p>
+              <div style={{ backgroundColor: '#000', padding: '12px', borderRadius: '4px', fontFamily: 'monospace', fontSize: '0.85rem', color: '#0f0' }}>
+                1. Open a terminal on your Windows machine<br/>
+                2. pip install pywin32 requests<br/>
+                3. python backend/scripts/local_outlook_agent.py
+              </div>
             </div>
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>Email Address</label>
-              <input type="email" className={styles.input} value={emailAddress} onChange={(e) => setEmailAddress(e.target.value)} disabled={isSyncing} />
+
+            <div style={{ padding: '16px', backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '1.1rem', color: '#fff' }}>Option 2: IMAP Server (Coming Soon)</h3>
+              <form onSubmit={(e) => { e.preventDefault(); handleSync('email', { imap_server: imapServer, email_address: emailAddress, app_password: appPassword }); }} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>IMAP Server</label>
+                  <input type="text" className={styles.input} value={imapServer} onChange={(e) => setImapServer(e.target.value)} disabled={isSyncing} />
+                </div>
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>Email Address</label>
+                  <input type="email" className={styles.input} value={emailAddress} onChange={(e) => setEmailAddress(e.target.value)} disabled={isSyncing} />
+                </div>
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>App Password</label>
+                  <input type="password" className={styles.input} value={appPassword} onChange={(e) => setAppPassword(e.target.value)} disabled={isSyncing} />
+                </div>
+                <button type="submit" className={styles.syncButton} disabled={!emailAddress || !appPassword || isSyncing}>
+                  {isSyncing ? "Syncing..." : "Sync Recent Emails"}
+                </button>
+              </form>
             </div>
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>App Password</label>
-              <input type="password" className={styles.input} value={appPassword} onChange={(e) => setAppPassword(e.target.value)} disabled={isSyncing} />
-            </div>
-            <button type="submit" className={styles.syncButton} disabled={!emailAddress || !appPassword || isSyncing}>
-              {isSyncing ? "Syncing..." : "Sync Recent Emails"}
-            </button>
-          </form>
+          </div>
         )}
 
         {activeTab === 'upload' && (
