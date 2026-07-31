@@ -22,6 +22,8 @@ services:
       context: ./backend
     ports:
       - "8000:8000"
+    env_file:
+      - ./backend/.env
     environment:
       POSTGRES_USER: synapse_user
       POSTGRES_PASSWORD: synapse_password
@@ -37,6 +39,8 @@ services:
     build:
       context: ./backend
     command: ["celery", "-A", "app.celery_app", "worker", "--loglevel=info"]
+    env_file:
+      - ./backend/.env
     environment:
       POSTGRES_USER: synapse_user
       POSTGRES_PASSWORD: synapse_password
