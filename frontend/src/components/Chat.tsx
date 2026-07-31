@@ -162,8 +162,9 @@ export default function Chat() {
               const data = JSON.parse(dataStr);
               if (data.status === "start" && data.conversation_id && !currentConvId) {
                 currentConvId = data.conversation_id;
-                setActiveConvId(data.conversation_id);
-                fetchConversations();
+                fetchConversations(); // Update sidebar immediately
+                // Note: We defer setActiveConvId until after the stream to prevent a race condition 
+                // where the useEffect fetches DB messages and wipes out the currently streaming AI bubble.
               } else if (data.text) {
                 setMessages((prev) => 
                   prev.map(msg => 
@@ -176,6 +177,12 @@ export default function Chat() {
             }
           }
         }
+      }
+      
+      // Now that the stream is completely finished, it is safe to set the active conversation ID.
+      // This will trigger a re-fetch of the messages from the DB, ensuring everything is in sync.
+      if (!activeConvId && currentConvId) {
+        setActiveConvId(currentConvId);
       }
     } catch (error) {
       console.error(error);
