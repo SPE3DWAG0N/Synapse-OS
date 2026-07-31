@@ -29,7 +29,8 @@ With Synapse OS, you don't just store information—you interact with it.
 
 ## ✨ Core Features
 
-- ⚡ **Lightning Fast Interface**: Built on Next.js with a warm, minimalist glassmorphic design system. No bloat, pure speed.
+- ⚡ **Lightning Fast Interface**: Built on Next.js 16 (Turbopack) with a sleek, Gemini-inspired minimalist design system. No bloat, pure speed.
+- 🎨 **Professional UI**: Features a distraction-free, hideable sidebar, soft pill buttons, and a clean, native-app feel.
 - 🧠 **Retrieval-Augmented Generation (RAG)**: Chat directly with your documents. Find answers buried deep in your notes instantly.
 - 🧵 **Decoupled AI Processing**: Document chunking and embedding generation are offloaded to background workers. Your UI never freezes.
 - 🔌 **Seamless Integrations**: Sync your GitHub repos, YouTube transcripts, Outlook emails, and local PDFs directly into your AI brain.
