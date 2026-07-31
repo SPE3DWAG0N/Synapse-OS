@@ -133,3 +133,9 @@ a {
     transform: scale(1) translate(-2%, -3%);
   }
 }
+
+/* Forcefully hide Next.js dev indicator */
+nextjs-portal, 
+[data-nextjs-toast] {
+  display: none !important;
+}
